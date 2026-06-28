@@ -1,0 +1,75 @@
+
+
+
+import yfinance as yf
+import mplfinance as mpf
+import pandas as pd
+
+def search_symbol(query):
+    results = yf.Search(query)
+    quotes = results.quotes
+    if not quotes:
+        return None
+    return quotes
+
+while True:
+    SYMBOL = input("Enter stock symbol: ").upper().strip()
+    ticker = yf.Ticker(SYMBOL)
+    df = ticker.history(period="1d", interval="5m")
+    if df.empty:
+        print("searching...")
+        print(f"'{SYMBOL}' not found. Searching for closest match...")
+        results = search_symbol(SYMBOL)
+        if results:
+            best = results[0]
+            name = best.get("longname") or best.get("shortname", "Unknown")
+            symbol = best.get("symbol", "")
+            print(f"Did you mean '{symbol}' ({name})? Redirecting...")
+            SYMBOL = symbol
+            ticker = yf.Ticker(SYMBOL)
+            df = ticker.history(period="1d", interval="5m")
+            if not df.empty:
+                break
+            else:
+                print("Still no data found. Try again.")
+                continue
+        else:
+            print("No matches found. Try again.")
+    else:
+        break
+
+
+
+
+def get_candlestick_data(symbol):
+    ticker = yf.Ticker(symbol)
+    df = ticker.history(period="1d", interval="5m")
+    return df
+
+
+def show_chart(symbol):
+    print(f"Fetching data for {symbol}...")
+    df = get_candlestick_data(symbol)
+
+    style = mpf.make_mpf_style(
+        base_mpf_style="nightclouds",
+        marketcolors=mpf.make_marketcolors(
+            up="lime",
+            down="red",
+            edge="inherit",
+            wick="inherit",
+            volume="in"
+        )
+    )
+
+    mpf.plot(
+        df,
+        type="candle",
+        style=style,
+        title=f"\n{symbol.upper()} — Today (5min candles)",
+        ylabel="Price (USD)",
+        volume=True,
+        show_nontrading=False
+    )
+
+show_chart(SYMBOL)
