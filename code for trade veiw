@@ -1,4 +1,9 @@
+'''librarys are needed to be downloaded before use, copy and paste: 
 
+pip install yfinance mplfinance pandas
+
+for it to work 
+'''
 
 # all imports for libraries
 import yfinance as yf
